@@ -27,16 +27,19 @@ const cors_1 = __importDefault(require("cors"));
 const typeorm_1 = require("typeorm");
 const User_1 = require("./entities/User");
 const Post_1 = require("./entities/Post");
+const path_1 = __importDefault(require("path"));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield typeorm_1.createConnection({
+    const conn = yield typeorm_1.createConnection({
         type: 'postgres',
         database: 'lireddit2',
         username: 'postgres',
         password: 'bishal',
         logging: true,
         synchronize: true,
+        migrations: [path_1.default.join(__dirname, './migrations/*')],
         entities: [User_1.User, Post_1.Post],
     });
+    yield conn.runMigrations();
     const app = express_1.default();
     app.use(cors_1.default({
         origin: 'http://localhost:3000',
