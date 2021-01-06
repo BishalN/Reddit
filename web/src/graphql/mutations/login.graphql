@@ -1,5 +1,5 @@
 mutation Login($userNameOrEmail: String!, $password: String!) {
-  login(options: { userNameOrEmail: $userNameOrEmail, password: $password }) {
+  login(userNameOrEmail: $userNameOrEmail, password: $password) {
     errors {
       field
       message
