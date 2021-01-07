@@ -1,8 +1,8 @@
-import { Box, Flex, Button, Link, Textarea } from '@chakra-ui/react';
+import { Box, Flex, Button } from '@chakra-ui/react';
 import { Formik, Form } from 'formik';
 import { withUrqlClient } from 'next-urql';
 import { useRouter } from 'next/router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { InputField } from '../components/InputField';
 import { Layout } from '../components/Layout';
 import { useCreatePostMutation, useMeQuery } from '../generated/graphql';
@@ -28,7 +28,7 @@ const CreatePost: React.FC<{}> = ({}) => {
           <Form>
             <InputField name='title' placeholder='title' label='Title' />
             <Box mt={4}>
-              <Textarea name='text' placeholder='text....' label='Body' />
+              <InputField name='text' placeholder='text' label='Text' />
             </Box>
             <Flex>
               <Button
