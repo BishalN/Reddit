@@ -16,6 +16,7 @@ import { User } from './entities/User';
 import { Post } from './entities/Post';
 import path from 'path';
 import { Updoot } from './entities/Updoot';
+import { createUserLoader } from './utils/createUserLoader';
 
 //
 const main = async () => {
@@ -65,7 +66,12 @@ const main = async () => {
       resolvers: [helloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext => ({ req, res, redis }),
+    context: ({ req, res }): MyContext => ({
+      req,
+      res,
+      redis,
+      userLoader: createUserLoader(),
+    }),
   });
 
   apolloServer.applyMiddleware({

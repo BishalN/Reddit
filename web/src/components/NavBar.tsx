@@ -21,7 +21,6 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   } else if (!data?.me) {
     body = (
       <>
-        <Heading>LiReddit</Heading>
         <NextLink href='/login'>
           <Link mr={2}>Login</Link>
         </NextLink>
@@ -48,11 +47,6 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   return (
     <Flex zIndex={1} bg='tan' p={4} position='sticky' top={0}>
       <Flex direction='row' justifyContent='space-around'>
-        <NextLink href='/'>
-          <Link>
-            <Heading mr={8}>Lireddit</Heading>
-          </Link>
-        </NextLink>
         <Box mr='auto'>{body}</Box>
       </Flex>
     </Flex>

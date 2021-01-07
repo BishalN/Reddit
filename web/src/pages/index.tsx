@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { useDeletePostMutation, usePostsQuery } from '../generated/graphql';
+import {
+  useDeletePostMutation,
+  useMeQuery,
+  usePostsQuery,
+} from '../generated/graphql';
 import { Layout } from '../components/Layout';
 import {
   Button,
@@ -15,13 +19,15 @@ import NextLink from 'next/link';
 import { UpdootSection } from '../components/UpdootSection';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 const Index = () => {
   const [variables, setVariables] = useState({
     limit: 20,
     cursor: null as null | string,
   });
+
+  const [{ data: dataMe }] = useMeQuery();
 
   const [{ data, fetching }] = usePostsQuery({ variables });
   const [, deletePost] = useDeletePostMutation();
@@ -64,14 +70,28 @@ const Index = () => {
                   <Text> posted by {p.creator.username}</Text>
                   <Text mt={4}>{p.textSnippet}</Text>
                 </Box>
-                <IconButton
-                  aria-label='Search database'
-                  icon={<DeleteIcon />}
-                  colorScheme='red'
-                  onClick={() => {
-                    deletePost({ id: p.id });
-                  }}
-                />
+                {dataMe?.me?.id !== p.creator.id ? null : (
+                  <Box ml='auto'>
+                    <NextLink
+                      href='/posts/edit/[id]'
+                      as={`/posts/edit/${p.id}`}
+                    >
+                      <IconButton
+                        aria-label='edit post'
+                        mr={4}
+                        icon={<EditIcon />}
+                      />
+                    </NextLink>
+
+                    <IconButton
+                      aria-label='delete post'
+                      icon={<DeleteIcon />}
+                      onClick={() => {
+                        deletePost({ id: p.id });
+                      }}
+                    />
+                  </Box>
+                )}
               </Flex>
             )
           )}
