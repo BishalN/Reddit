@@ -60,15 +60,25 @@ let PostResolver = class PostResolver {
         return __awaiter(this, void 0, void 0, function* () {
             const realLimit = Math.min(50, limit);
             const realLimitPlusOne = realLimit + 1;
-            const qb = typeorm_1.getConnection()
-                .getRepository(Post_1.Post)
-                .createQueryBuilder('p')
-                .orderBy('"createdAt"', 'DESC')
-                .take(realLimitPlusOne);
+            const replacement = [realLimitPlusOne];
             if (cursor) {
-                qb.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) });
+                replacement.push(new Date(parseInt(cursor)));
             }
-            const posts = yield qb.getMany();
+            const posts = yield typeorm_1.getConnection().query(`
+    select p.* ,
+    json_build_object(
+      'id', u.id,
+      'username',u.username,
+      'email',u.email,
+      'createdAt', u."createdAt",
+      'updatedAt', u."updatedAt" 
+    ) creator
+    from post p
+    inner join public.user u on u.id = p."creatorId"
+    ${cursor ? 'where p."createdAt" < $2' : ''}
+    order by p."createdAt" DESC
+    limit $1
+    `, replacement);
             return {
                 posts: posts.slice(0, realLimit),
                 hasMore: posts.length === realLimitPlusOne,
@@ -77,6 +87,26 @@ let PostResolver = class PostResolver {
     }
     post(id) {
         return Post_1.Post.findOne(id);
+    }
+    vote(postId, value, { req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const isUpdoot = value !== -1;
+            const realValue = isUpdoot ? 1 : -1;
+            const { userId } = req.session;
+            yield typeorm_1.getConnection().query(`
+    START TRANSACTION;
+
+    insert into updoot("userId","postId",value)
+    values (${userId},${postId},${realValue});
+
+    update post 
+    set points = points + ${realValue}
+    where id = ${postId};
+
+    COMMIT;
+    `);
+            return true;
+        });
     }
     createPost(input, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -124,6 +154,16 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "post", null);
+__decorate([
+    type_graphql_1.Mutation(() => Boolean),
+    type_graphql_1.UseMiddleware(isAuth_1.isAuth),
+    __param(0, type_graphql_1.Arg('postId', () => type_graphql_1.Int)),
+    __param(1, type_graphql_1.Arg('value', () => type_graphql_1.Int)),
+    __param(2, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "vote", null);
 __decorate([
     type_graphql_1.Mutation(() => Post_1.Post),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),
