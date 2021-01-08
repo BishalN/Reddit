@@ -12,14 +12,14 @@ const Post: React.FC<{}> = ({}) => {
   const intId =
     typeof router.query.id === 'string' ? parseInt(router.query.id) : -1;
 
-  const [{ data: dataMe }] = useMeQuery();
+  const { data: dataMe } = useMeQuery();
 
-  const [{ data, fetching, error }] = usePostQuery({
-    pause: intId === -1,
+  const { data, loading, error } = usePostQuery({
+    skip: intId === -1,
     variables: { id: intId },
   });
 
-  if (fetching) {
+  if (loading) {
     return (
       <Layout varaint='regular'>
         <div>Loading...</div>
@@ -52,4 +52,4 @@ const Post: React.FC<{}> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Post);
+export default Post;

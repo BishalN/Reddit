@@ -1,4 +1,3 @@
-import { User } from '../entities/User';
 import { Updoot } from '../entities/Updoot';
 import DataLoader from 'dataloader';
 
@@ -12,7 +11,6 @@ export const createUpdootLoader = () =>
       updoots.forEach((updoot) => {
         updootIdsToUpdoot[`${updoot.userId}|${updoot.postId}`] = updoot;
       });
-      console.log(User);
 
       return keys.map(
         (key) => updootIdsToUpdoot[`${key.userId}|${key.postId}`]

@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUpdootLoader = void 0;
-const User_1 = require("../entities/User");
 const Updoot_1 = require("../entities/Updoot");
 const dataloader_1 = __importDefault(require("dataloader"));
 exports.createUpdootLoader = () => new dataloader_1.default((keys) => __awaiter(void 0, void 0, void 0, function* () {
@@ -22,7 +21,6 @@ exports.createUpdootLoader = () => new dataloader_1.default((keys) => __awaiter(
     updoots.forEach((updoot) => {
         updootIdsToUpdoot[`${updoot.userId}|${updoot.postId}`] = updoot;
     });
-    console.log(User_1.User);
     return keys.map((key) => updootIdsToUpdoot[`${key.userId}|${key.postId}`]);
 }));
 //# sourceMappingURL=createUpdootLoader.js.map

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  PostsQuery,
   useDeletePostMutation,
   useMeQuery,
   usePostsQuery,
@@ -17,22 +18,22 @@ import {
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { UpdootSection } from '../components/UpdootSection';
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../utils/createUrqlClient';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import { withApollo } from '../utils/withApollo';
 
 const Index = () => {
-  const [variables, setVariables] = useState({
-    limit: 20,
-    cursor: null as null | string,
+  const { data: dataMe } = useMeQuery();
+
+  const { data, loading, fetchMore, variables } = usePostsQuery({
+    variables: {
+      limit: 20,
+      cursor: null,
+    },
+    notifyOnNetworkStatusChange: true,
   });
+  const [deletePost] = useDeletePostMutation();
 
-  const [{ data: dataMe }] = useMeQuery();
-
-  const [{ data, fetching }] = usePostsQuery({ variables });
-  const [, deletePost] = useDeletePostMutation();
-
-  if (!fetching && !data) {
+  if (!loading && !data) {
     return <div>you got no data</div>;
   }
 
@@ -46,7 +47,7 @@ const Index = () => {
       </Flex>
 
       <br />
-      {!data && fetching ? (
+      {!data && loading ? (
         <div>loading...</div>
       ) : (
         <Stack spacing={8}>
@@ -87,7 +88,12 @@ const Index = () => {
                       aria-label='delete post'
                       icon={<DeleteIcon />}
                       onClick={() => {
-                        deletePost({ id: p.id });
+                        deletePost({
+                          variables: { id: p.id },
+                          update: (cache) => {
+                            cache.evict({ id: 'Post:' + p.id });
+                          },
+                        });
                       }}
                     />
                   </Box>
@@ -103,11 +109,33 @@ const Index = () => {
           <Button
             m='auto'
             my={8}
-            isLoading={fetching}
+            isLoading={loading}
             onClick={() => {
-              setVariables({
-                limit: variables.limit,
-                cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+              fetchMore({
+                variables: {
+                  limit: variables?.limit,
+                  cursor:
+                    data.posts.posts[data.posts.posts.length - 1].createdAt,
+                },
+                updateQuery: (
+                  previousResult,
+                  { fetchMoreResult }
+                ): PostsQuery => {
+                  if (!fetchMoreResult) {
+                    return previousResult as PostsQuery;
+                  }
+                  return {
+                    __typename: 'Query',
+                    posts: {
+                      __typename: 'PaginatedPosts',
+                      hasMore: fetchMoreResult.posts.hasMore,
+                      posts: [
+                        ...previousResult.posts.posts,
+                        ...fetchMoreResult.posts.posts,
+                      ],
+                    },
+                  };
+                },
               });
             }}
           >
@@ -119,4 +147,4 @@ const Index = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+export default withApollo({ ssr: true })(Index);

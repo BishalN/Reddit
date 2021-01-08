@@ -16,14 +16,14 @@ const EditPost: React.FC<{}> = ({}) => {
   const intId =
     typeof router.query.id === 'string' ? parseInt(router.query.id) : -1;
 
-  const [, updatePost] = useUpdatePostMutation();
+  const [updatePost] = useUpdatePostMutation();
 
-  const [{ data, fetching, error }] = usePostQuery({
-    pause: intId === -1,
+  const { data, loading, error } = usePostQuery({
+    skip: intId === -1,
     variables: { id: intId },
   });
 
-  if (fetching) {
+  if (loading) {
     return (
       <Layout varaint='regular'>
         <div>Loading...</div>
@@ -49,9 +49,7 @@ const EditPost: React.FC<{}> = ({}) => {
         initialValues={{ title: data.post.title, text: data.post.text }}
         onSubmit={async (values) => {
           await updatePost({
-            id: intId,
-            text: values.text,
-            title: values.title,
+            variables: { id: intId, text: values.text, title: values.title },
           });
           router.back();
         }}
@@ -89,4 +87,4 @@ const EditPost: React.FC<{}> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(EditPost);
+export default EditPost;
